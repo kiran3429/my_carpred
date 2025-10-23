@@ -18,7 +18,7 @@ if not os.path.exists(MODEL_PATH):
     gdown.download(url, MODEL_PATH, quiet=False)
 
 # Load the model
-model = jolib.load(MODEL_PATH)
+model = joblib.load(MODEL_PATH)
 
 # -----------------------
 # 2. Load dataset for widget options
