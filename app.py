@@ -14,12 +14,17 @@ MODEL_URL = f"https://drive.google.com/uc?id={MODEL_FILE_ID}"
 
 @st.cache_resource
 def load_model():
-    response = requests.get(MODEL_URL)
-    if response.status_code != 200:
-        st.error("⚠️ Unable to load model from Google Drive.")
+    try:
+        response = requests.get(MODEL_URL)
+        if response.status_code != 200:
+            st.error("⚠️ Unable to load model from Google Drive.")
+            return None
+        model = joblib.load(io.BytesIO(response.content))
+        st.success("✅ Model loaded successfully!")
+        return model
+    except Exception as e:
+        st.error(f"❌ Error loading model: {str(e)}")
         return None
-    model = joblib.load(io.BytesIO(response.content))
-    return model
 
 model = load_model()
 if model is None:
@@ -29,17 +34,22 @@ if model is None:
 # 🔹 2. Load Dataset from Google Drive
 # ----------------------------
 # Replace with your Google Drive file ID for d1.csv
-CSV_FILE_ID = "YOUR_CSV_DRIVE_ID_HERE"
+CSV_FILE_ID = "19ijlwqFSr7nVCPzPUh4tLuMFKuFFl4q-"  # ← REPLACE THIS WITH YOUR ACTUAL CSV FILE ID
 CSV_URL = f"https://drive.google.com/uc?id={CSV_FILE_ID}"
 
 @st.cache_data
 def load_data():
-    response = requests.get(CSV_URL)
-    if response.status_code != 200:
-        st.error("⚠️ Unable to load CSV from Google Drive.")
+    try:
+        response = requests.get(CSV_URL)
+        if response.status_code != 200:
+            st.error("⚠️ Unable to load CSV from Google Drive.")
+            return None
+        df = pd.read_csv(io.BytesIO(response.content))
+        st.success("✅ Dataset loaded successfully!")
+        return df
+    except Exception as e:
+        st.error(f"❌ Error loading dataset: {str(e)}")
         return None
-    df = pd.read_csv(io.BytesIO(response.content))
-    return df
 
 df = load_data()
 if df is None:
@@ -48,7 +58,7 @@ if df is None:
 # ----------------------------
 # 🔹 3. App Title
 # ----------------------------
-st.title("🔮 Vehicle Price Predictor")
+st.title("🚗 Vehicle Price Predictor")
 st.write("Predict the estimated price of a vehicle using its features.")
 
 # ----------------------------
@@ -56,6 +66,7 @@ st.write("Predict the estimated price of a vehicle using its features.")
 # ----------------------------
 st.sidebar.header("Enter Vehicle Details")
 
+# Create input widgets with default values from the dataset
 make = st.sidebar.selectbox("Make:", sorted(df['make'].dropna().unique()))
 fuel = st.sidebar.selectbox("Fuel Type:", sorted(df['fuel'].dropna().unique()))
 transmission = st.sidebar.selectbox("Transmission:", sorted(df['transmission'].dropna().unique()))
@@ -87,15 +98,32 @@ input_df = pd.DataFrame(input_data)
 # 🔹 6. Prediction
 # ----------------------------
 if st.button("🔍 Predict Price"):
-    pred_log = model.predict(input_df)[0]
-    pred_price = np.expm1(pred_log)
-    st.success(f"🚗 Predicted Vehicle Price: ${pred_price:,.2f}")
-
-    st.write("### Input Summary:")
-    st.dataframe(input_df)
+    try:
+        # Make prediction
+        pred_log = model.predict(input_df)[0]
+        
+        # Convert from log scale back to original price
+        pred_price = np.expm1(pred_log)
+        
+        # Display result
+        st.success(f"💰 **Predicted Vehicle Price: ${pred_price:,.2f}**")
+        
+        # Show input summary
+        st.write("### 📋 Input Summary:")
+        st.dataframe(input_df, use_container_width=True)
+        
+    except Exception as e:
+        st.error(f"❌ Prediction error: {str(e)}")
 
 # ----------------------------
-# 🔹 7. Footer
+# 🔹 7. Dataset Preview (Optional)
+# ----------------------------
+with st.expander("📊 Preview Dataset"):
+    st.write(f"Dataset shape: {df.shape}")
+    st.dataframe(df.head(), use_container_width=True)
+
+# ----------------------------
+# 🔹 8. Footer
 # ----------------------------
 st.write("---")
 st.caption("Developed with ❤️ using Streamlit and Random Forest Regressor")
