@@ -1,7 +1,8 @@
-streamlit=1.6.1
+streamlit
 pandas
 numpy
 scikit-learn
 ipywidgets
 gdown
 jolib
+
