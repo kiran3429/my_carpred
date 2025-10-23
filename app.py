@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import gdown
 import joblib
+import os
 
 # -----------------------
 # 1. Load the model
