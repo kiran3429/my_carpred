@@ -80,4 +80,4 @@ with st.expander("Preview Dataset"):
 # 🔹 8. Footer
 # ----------------------------
 st.write("---")
-st.caption("Developed with ❤️ using Streamlit and Random Forest Regressor")
+st.caption("Developed BY kiran kumar anand hari using Streamlit and Random Forest Regressor")
