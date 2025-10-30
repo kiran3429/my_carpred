@@ -4,14 +4,8 @@ import numpy as np
 import joblib
 import requests
 import io
-
-# ----------------------------
-# 🔹 1. Load Model from Google Drive
-# ----------------------------
-# Replace with your Google Drive file ID for the vehicle price model
 MODEL_FILE_ID = "1V4OA2T9-6Ya2VkVO3p1rXKGlp-P1uEUs"
 MODEL_URL = f"https://drive.google.com/uc?id={MODEL_FILE_ID}"
-
 @st.cache_resource
 def load_model():
     try:
@@ -25,18 +19,11 @@ def load_model():
     except Exception as e:
         st.error(f"❌ Error loading model: {str(e)}")
         return None
-
 model = load_model()
 if model is None:
     st.stop()
-
-# ----------------------------
-# 🔹 2. Load Dataset from Google Drive
-# ----------------------------
-# Replace with your Google Drive file ID for d1.csv
-CSV_FILE_ID = "19ijlwqFSr7nVCPzPUh4tLuMFKuFFl4q-"  # ← REPLACE THIS WITH YOUR ACTUAL CSV FILE ID
+CSV_FILE_ID = "19ijlwqFSr7nVCPzPUh4tLuMFKuFFl4q-"  
 CSV_URL = f"https://drive.google.com/uc?id={CSV_FILE_ID}"
-
 @st.cache_data
 def load_data():
     try:
@@ -50,23 +37,12 @@ def load_data():
     except Exception as e:
         st.error(f"❌ Error loading dataset: {str(e)}")
         return None
-
 df = load_data()
 if df is None:
     st.stop()
-
-# ----------------------------
-# 🔹 3. App Title
-# ----------------------------
 st.title("🚗 Vehicle Price Predictor")
 st.write("Predict the estimated price of a vehicle using its features.")
-
-# ----------------------------
-# 🔹 4. Collect Inputs
-# ----------------------------
 st.sidebar.header("Enter Vehicle Details")
-
-# Create input widgets with default values from the dataset
 make = st.sidebar.selectbox("Make:", sorted(df['make'].dropna().unique()))
 fuel = st.sidebar.selectbox("Fuel Type:", sorted(df['fuel'].dropna().unique()))
 transmission = st.sidebar.selectbox("Transmission:", sorted(df['transmission'].dropna().unique()))
@@ -76,10 +52,6 @@ cylinders = st.sidebar.number_input("Cylinders:", min_value=2, max_value=16, val
 doors = st.sidebar.number_input("Doors:", min_value=2, max_value=6, value=4, step=1)
 mileage = st.sidebar.number_input("Mileage (km):", min_value=0, value=30000, step=1000)
 car_age = st.sidebar.number_input("Car Age (years):", min_value=0, value=2, step=1)
-
-# ----------------------------
-# 🔹 5. Prepare Input
-# ----------------------------
 input_data = {
     "make": [make],
     "fuel": [fuel],
@@ -93,36 +65,18 @@ input_data = {
 }
 
 input_df = pd.DataFrame(input_data)
-
-# ----------------------------
-# 🔹 6. Prediction
-# ----------------------------
 if st.button("🔍 Predict Price"):
     try:
-        # Make prediction
         pred_log = model.predict(input_df)[0]
-        
-        # Convert from log scale back to original price
         pred_price = np.expm1(pred_log)
-        
-        # Display result
         st.success(f"💰 **Predicted Vehicle Price: ${pred_price:,.2f}**")
-        
-        # Show input summary
-        st.write("### 📋 Input Summary:")
+        st.write("Input Summary:")
         st.dataframe(input_df, use_container_width=True)
-        
     except Exception as e:
         st.error(f"❌ Prediction error: {str(e)}")
-
-# ----------------------------
-# 🔹 7. Dataset Preview (Optional)
-# ----------------------------
-with st.expander("📊 Preview Dataset"):
+with st.expander("Preview Dataset"):
     st.write(f"Dataset shape: {df.shape}")
     st.dataframe(df.head(), use_container_width=True)
-
-# ----------------------------
 # 🔹 8. Footer
 # ----------------------------
 st.write("---")
